@@ -1,0 +1,145 @@
+<html>
+<head>
+	<title>Home</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link href="/resources/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+	<!-- <link href="/resources/bootstrap/css/bootstrap-theme.min.css" rel="stylesheet"> -->
+	<style>
+		.uploadLayer { 
+			margin-top:80px;
+			margin-left:220px;
+			width:860px;
+		}
+		.fileinput {
+			position: relative;
+		    overflow: hidden;
+		    display: inline-block;
+		    height:34px;
+		}
+		.fileinput input {
+			display:block;
+		    position: absolute;
+		    top: 0;
+		    right: 0;
+		    margin: 0;
+		    opacity: 0;
+		    filter: 'alpha(opacity=0)';
+		    -ms-filter: 'alpha(opacity=0)';
+		    font-size: 34px !important;
+		    direction: ltr;
+		    cursor: pointer;
+		}
+	</style>
+	
+</head>
+<body>
+	<div id="wrapper">
+		<div class="row">
+			<p id="loading" style="margin-top:20px;margin-left:240px;">로딩중...</p>
+			<div class="uploadLayer jquery" id="container">
+				<form action="/upload" method="POST" enctype="multipart/form-data" id="fileupload" onsubmit="return false;">
+					<span class="btn btn-success fileinput" id="fileAddBtn">
+						<i class="glyphicon glyphicon-plus"></i><span> 파일 추가</span>
+						<!-- <input type="file" name="files" multiple="" /> -->
+					</span>
+					<button class="btn btn-primary" id="fileUploadBtn" type="submit">
+						<span class="glyphicon glyphicon-upload" aria-hidden="true"></span> 파일 업로드
+					</button>
+					<!-- <button class="btn btn-danger" id="fileDeleteBtn" type="button">
+						<span class="glyphicon glyphicon-trash" aria-hidden="true"></span> 전체 삭제
+					</button> -->
+					<hr />
+					<table role="presentation" class="table table-striped uploadList">
+						<colgroup>
+			                 <col width="40" />
+			                 <col width="*" />
+			                 <col width="280" />
+			                 <col width="180" />
+			            </colgroup>
+						<tbody class="files">
+						</tbody>
+					</table>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+
+<script
+  src="https://code.jquery.com/jquery-1.12.4.js"
+  integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+  crossorigin="anonymous"></script>
+<script src="/resources/js/plupload/plupload.full.min.js"></script>
+<!-- <script src="/resources/js/plupload/moxie.min.js"></script> -->
+<script src="/resources/js/common.js"></script>
+<script>
+var uploader = new plupload.Uploader({
+	runtimes : 'html5,flash,html4',
+	browse_button : 'fileAddBtn',
+	container: document.getElementById('container'),
+	chunk_size : '50mb',
+	url : '/upload/otwojob?path=media',
+	file_data_name : 'files',
+	flash_swf_url : '/resources/js/plupload/Moxie.swf',
+	//unique_names: true,
+	//multipart_params : {'path' : 'D:\\' }, 
+	filters : {
+		max_file_size : '1000mb',
+		mime_types: [
+			/* {title : "all files", extensions : "*"}, */
+			{title : "Image files", extensions : "jpg,gif,png"},
+			{title : "Zip files", extensions : "zip"},
+			{title : "Pdf files", extensions : "pdf"},
+			{title : "exe files", extensions : "exe"}
+		],
+		prevent_duplicates: true
+	},
+
+	init: {
+		PostInit: function() {
+			$("#loading").hide();
+			document.getElementById('fileUploadBtn').onclick = function() {
+				uploader.start();
+				return false;
+			};
+			
+			$('body').on('click', '#removeBtn', function() {
+				var id = $(this).closest('tr').attr('id');
+				var file = uploader.getFile(id);
+				uploader.removeFile(file);
+				$('#'+id).remove();
+			});
+		},
+
+		FilesAdded: function(up, files) {
+			plupload.each(files, function(file) {
+				var size = formatBytes(file.size);
+				var tr = '<tr id="' + file.id + '"><td></td><td><p class="fileName">'+ file.name +'</p></td>';
+				tr += '<td><p>'+ size +'</p><div class="progress">';
+				tr += '<div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar">0%';
+				tr += '</div></div></td><td>';
+				tr += '<button id="removeBtn" class="btn btn-danger"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span> 삭제</button></td></tr>';
+	       		$('.uploadList').append(tr);
+			});
+		},
+		
+		UploadProgress: function(up, file) {
+			var progress = file.percent;
+			$("#"+file.id).find('.progress-bar').css({ 'width' : progress +'%' });
+			$("#"+file.id).find('.progress-bar').text(progress +'%');
+        	console.log('progress', progress);
+		},
+
+		Error: function(up, err) {
+			console.log("Error #" + err.code + ": " + err.message);
+		},
+		
+		FileUploaded: function(up, file, response) {
+            console.log('upload completed <br/>            ' + response.response);            
+        }
+	}
+});
+
+uploader.init();
+</script>
+</html>

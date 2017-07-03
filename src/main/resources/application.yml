@@ -1,0 +1,14 @@
+site:
+  otwojob:
+    root: otwojob
+    fileSizeMax: 100M
+    sizeMax: 500M
+    type: .pds,.pdf,image/jpeg,image/png,image/gif
+    order: allow
+    
+  saramin:
+    root: saramin
+    fileSizeMax: 5000M
+    sizeMax: 5000M
+    type: .exe, .php
+    order: deny  
